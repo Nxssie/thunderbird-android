@@ -270,6 +270,7 @@ class LegacyAccountStorageHandler(
             val name = storage.getStringOrNull(keyGen.create("$IDENTITY_NAME_KEY.$ident"))
             val email = storage.getStringOrNull(keyGen.create("$IDENTITY_EMAIL_KEY.$ident"))
             val signatureUse = storage.getBoolean(keyGen.create("signatureUse.$ident"), false)
+            val signatureHtml = storage.getBoolean(keyGen.create("signatureHtml.$ident"), false)
             val signature = storage.getStringOrNull(keyGen.create("signature.$ident"))
             val description = storage.getStringOrNull(keyGen.create("$IDENTITY_DESCRIPTION_KEY.$ident"))
             val replyTo = storage.getStringOrNull(keyGen.create("replyTo.$ident"))
@@ -278,6 +279,7 @@ class LegacyAccountStorageHandler(
                     name = name,
                     email = email,
                     signatureUse = signatureUse,
+                    signatureHtml = signatureHtml,
                     signature = signature,
                     description = description,
                     replyTo = replyTo,
@@ -292,11 +294,13 @@ class LegacyAccountStorageHandler(
             val name = storage.getStringOrNull(keyGen.create("name"))
             val email = storage.getStringOrNull(keyGen.create("email"))
             val signatureUse = storage.getBoolean(keyGen.create("signatureUse"), false)
+            val signatureHtml = storage.getBoolean(keyGen.create("signatureHtml"), false)
             val signature = storage.getStringOrNull(keyGen.create("signature"))
             val identity = Identity(
                 name = name,
                 email = email,
                 signatureUse = signatureUse,
+                signatureHtml = signatureHtml,
                 signature = signature,
                 description = email,
             )
@@ -555,6 +559,7 @@ class LegacyAccountStorageHandler(
                 editor.putString(keyGen.create("$IDENTITY_NAME_KEY.$ident"), identity.name)
                 editor.putString(keyGen.create("$IDENTITY_EMAIL_KEY.$ident"), identity.email)
                 editor.putBoolean(keyGen.create("signatureUse.$ident"), identity.signatureUse)
+                editor.putBoolean(keyGen.create("signatureHtml.$ident"), identity.signatureHtml)
                 editor.putString(keyGen.create("signature.$ident"), identity.signature)
                 editor.putString(keyGen.create("$IDENTITY_DESCRIPTION_KEY.$ident"), identity.description)
                 editor.putString(keyGen.create("replyTo.$ident"), identity.replyTo)
@@ -576,6 +581,7 @@ class LegacyAccountStorageHandler(
                 editor.remove(keyGen.create("$IDENTITY_NAME_KEY.$identityIndex"))
                 editor.remove(keyGen.create("$IDENTITY_EMAIL_KEY.$identityIndex"))
                 editor.remove(keyGen.create("signatureUse.$identityIndex"))
+                editor.remove(keyGen.create("signatureHtml.$identityIndex"))
                 editor.remove(keyGen.create("signature.$identityIndex"))
                 editor.remove(keyGen.create("$IDENTITY_DESCRIPTION_KEY.$identityIndex"))
                 editor.remove(keyGen.create("replyTo.$identityIndex"))

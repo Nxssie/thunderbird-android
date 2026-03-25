@@ -111,6 +111,30 @@
                     android:layout_height="wrap_content"
                     android:contentDescription="@string/account_settings_signature_label"
                     android:inputType="textMultiLine|textAutoCorrect|textCapSentences"
+                    android:gravity="top"
+                    android:minLines="3"
+                    />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/account_signature_html"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/account_settings_signature_html_label"
+                    />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:text="@string/edit_identity_signature_preview_label"
+                    android:layout_height="wrap_content"
+                    android:layout_width="fill_parent"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:layout_marginTop="8dp"
+                    />
+
+                <WebView
+                    android:id="@+id/account_signature_preview"
+                    android:layout_width="fill_parent"
+                    android:layout_height="120dp"
+                    android:background="@android:color/white"
                     />
 
                 <com.google.android.material.textview.MaterialTextView

@@ -50,4 +50,20 @@ object HtmlConverter {
     fun textToHtmlFragment(text: String, htmlTag: HTMLTag = HTMLTag.DIV): String {
         return TextToHtml.toHtmlFragment(text, retainOriginalWhitespace = false, htmlTag)
     }
+
+    /**
+     * Detects if the given text contains HTML markup.
+     * Checks for container tags (opening and closing pairs) and void/self-closing tags.
+     */
+    @JvmStatic
+    fun containsHtml(text: String): Boolean {
+        if (text.isEmpty()) return false
+
+        // Pattern for container tags: <tag>...</tag>
+        val containerTagPattern = "<([a-zA-Z][a-zA-Z0-9]*)\\b[^>]*>.*?</\\1>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        // Pattern for void/empty tags: <br>, <img>, <hr>, etc.
+        val voidTagPattern = "<(br|hr|img|input|meta|link|area|base|col|embed|param|source|track|wbr)\\b[^>]*>".toRegex(RegexOption.IGNORE_CASE)
+
+        return containerTagPattern.containsMatchIn(text) || voidTagPattern.containsMatchIn(text)
+    }
 }

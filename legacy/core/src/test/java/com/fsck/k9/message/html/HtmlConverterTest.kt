@@ -2,6 +2,8 @@ package com.fsck.k9.message.html
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import com.fsck.k9.K9RobolectricTest
 import com.fsck.k9.mail.testing.crlf
 import com.fsck.k9.mail.testing.removeLineBreaks
@@ -662,5 +664,50 @@ class HtmlConverterTest : K9RobolectricTest() {
         val result = HtmlConverter.htmlToText(input)
 
         assertThat(result).isEqualTo(input)
+    }
+
+    @Test
+    fun `containsHtml() with plain text should return false`() {
+        assertThat(HtmlConverter.containsHtml("Hello World")).isFalse()
+        assertThat(HtmlConverter.containsHtml("")).isFalse()
+        assertThat(HtmlConverter.containsHtml("Text with < symbol")).isFalse()
+        assertThat(HtmlConverter.containsHtml("5 > 3 and 2 < 4")).isFalse()
+    }
+
+    @Test
+    fun `containsHtml() with HTML container tags should return true`() {
+        assertThat(HtmlConverter.containsHtml("<div>Hello</div>")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<p>Paragraph</p>")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<span>Text</span>")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<strong>Bold</strong>")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<a href='link'>Link</a>")).isTrue()
+    }
+
+    @Test
+    fun `containsHtml() with void tags should return true`() {
+        assertThat(HtmlConverter.containsHtml("Line<br>break")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<hr>")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<img src='image.jpg'>")).isTrue()
+        assertThat(HtmlConverter.containsHtml("<IMG SRC='image.jpg'>")).isTrue()
+    }
+
+    @Test
+    fun `containsHtml() with complex HTML should return true`() {
+        val signature = """
+            <div style="color: #666;">
+                <strong>John Doe</strong><br>
+                Developer<br>
+                <a href="https://example.com">Website</a>
+            </div>
+        """.trimIndent()
+
+        assertThat(HtmlConverter.containsHtml(signature)).isTrue()
+    }
+
+    @Test
+    fun `containsHtml() with signature delimiter should return false`() {
+        // The signature delimiter "-- " should not be detected as HTML
+        assertThat(HtmlConverter.containsHtml("-- ")).isFalse()
+        assertThat(HtmlConverter.containsHtml("-- \nJohn Doe")).isFalse()
     }
 }

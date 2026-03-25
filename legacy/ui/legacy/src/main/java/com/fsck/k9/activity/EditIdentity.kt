@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.webkit.WebView
 import android.widget.EditText
 import androidx.core.content.IntentCompat
 import androidx.core.os.BundleCompat
@@ -29,8 +30,10 @@ class EditIdentity : BaseActivity() {
     private lateinit var email: EditText
     private lateinit var replyTo: EditText
     private lateinit var signatureUse: MaterialCheckBox
+    private lateinit var signatureHtml: MaterialCheckBox
     private lateinit var signature: EditText
     private lateinit var signatureLayout: View
+    private lateinit var signaturePreview: WebView
 
     private var identityIndex: Int = 0
     private var isSaveActionEnabled = false
@@ -64,8 +67,11 @@ class EditIdentity : BaseActivity() {
         email = findViewById(R.id.email)
         replyTo = findViewById(R.id.reply_to)
         signatureUse = findViewById(R.id.signature_use)
+        signatureHtml = findViewById(R.id.signature_html)
         signature = findViewById(R.id.signature)
         signatureLayout = findViewById(R.id.signature_layout)
+        signaturePreview = findViewById(R.id.signature_preview)
+        signaturePreview.settings.javaScriptEnabled = false
 
         description.setText(identity.description)
         name.setText(identity.name)
@@ -77,19 +83,86 @@ class EditIdentity : BaseActivity() {
             if (isChecked) {
                 signatureLayout.isVisible = true
                 signature.setText(identity.signature)
+                signatureHtml.isChecked = identity.signatureHtml
+                updateSignaturePreview()
             } else {
                 signatureLayout.isVisible = false
             }
         }
 
+        signatureHtml.isChecked = identity.signatureHtml
+        signatureHtml.setOnCheckedChangeListener { _, _ ->
+            updateSignaturePreview()
+        }
+
         if (signatureUse.isChecked) {
             signature.setText(identity.signature)
+            updateSignaturePreview()
         } else {
             signatureLayout.isVisible = false
         }
 
+        signature.doAfterTextChanged { updateSignaturePreview() }
+
         setTextChangedListeners()
         validateFields()
+    }
+
+    private fun updateSignaturePreview() {
+        val signatureText = signature.text.toString()
+        if (signatureText.isBlank()) {
+            signaturePreview.loadUrl("about:blank")
+            return
+        }
+
+        val htmlContent = if (signatureHtml.isChecked) {
+            // Use HTML directly
+            """
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { 
+                        font-family: sans-serif; 
+                        padding: 8px; 
+                        margin: 0;
+                        color: #333;
+                    }
+                </style>
+            </head>
+            <body>
+                $signatureText
+            </body>
+            </html>
+            """
+        } else {
+            // Convert plain text to HTML
+            val escapedText = signatureText
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>")
+            """
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { 
+                        font-family: sans-serif; 
+                        padding: 8px; 
+                        margin: 0;
+                        color: #333;
+                    }
+                </style>
+            </head>
+            <body>
+                $escapedText
+            </body>
+            </html>
+            """
+        }
+
+        signaturePreview.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
     }
 
     private fun setTextChangedListeners() {
@@ -118,6 +191,7 @@ class EditIdentity : BaseActivity() {
             email = email.text.toString().trim(),
             name = name.text.toString().takeUnless { it.isBlank() },
             signatureUse = signatureUse.isChecked,
+            signatureHtml = signatureHtml.isChecked,
             signature = signature.text.toString(),
             replyTo = replyTo.text.toString().trim().takeUnless { it.isBlank() },
         )

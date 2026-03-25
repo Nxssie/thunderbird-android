@@ -68,9 +68,10 @@ class IdentityHeaderBuilderTest : RobolectricTest() {
         email: String? = null,
         signature: String? = null,
         signatureUse: Boolean = false,
+        signatureHtml: Boolean = false,
         replyTo: String? = null,
     ): Identity {
-        return Identity(description, name, email, signature, signatureUse, replyTo)
+        return Identity(description, name, email, signature, signatureUse, signatureHtml, replyTo)
     }
 }
 

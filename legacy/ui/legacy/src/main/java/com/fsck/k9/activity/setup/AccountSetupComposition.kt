@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.webkit.WebView
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
@@ -28,6 +29,8 @@ class AccountSetupComposition : BaseActivity() {
     private lateinit var accountAlwaysBcc: EditText
     private lateinit var accountSenderName: EditText
     private lateinit var accountSignatureUse: MaterialCheckBox
+    private lateinit var accountSignatureHtml: MaterialCheckBox
+    private lateinit var accountSignaturePreview: WebView
     private lateinit var accountSignatureBeforeLocation: MaterialRadioButton
     private lateinit var accountSignatureAfterLocation: MaterialRadioButton
     private lateinit var accountSignatureLayout: LinearLayout
@@ -49,6 +52,9 @@ class AccountSetupComposition : BaseActivity() {
         accountSignatureLayout = findViewById(R.id.account_signature_layout)
         accountSignatureUse = findViewById(R.id.account_signature_use)
         accountSignature = findViewById(R.id.account_signature)
+        accountSignatureHtml = findViewById(R.id.account_signature_html)
+        accountSignaturePreview = findViewById(R.id.account_signature_preview)
+        accountSignaturePreview.settings.javaScriptEnabled = false
         accountSignatureBeforeLocation = findViewById(R.id.account_signature_location_before_quoted_text)
         accountSignatureAfterLocation = findViewById(R.id.account_signature_location_after_quoted_text)
 
@@ -62,6 +68,8 @@ class AccountSetupComposition : BaseActivity() {
             if (isChecked) {
                 accountSignatureLayout.isVisible = true
                 accountSignature.setText(account.signature)
+                accountSignatureHtml.isChecked = account.signatureHtml
+                updateSignaturePreview()
 
                 val isSignatureBeforeQuotedText = account.isSignatureBeforeQuotedText
                 accountSignatureBeforeLocation.isChecked = isSignatureBeforeQuotedText
@@ -71,8 +79,12 @@ class AccountSetupComposition : BaseActivity() {
             }
         }
 
+        accountSignatureHtml.isChecked = account.signatureHtml
+        accountSignatureHtml.setOnCheckedChangeListener { _, _ -> updateSignaturePreview() }
+
         if (useSignature) {
             accountSignature.setText(account.signature)
+            updateSignaturePreview()
 
             val isSignatureBeforeQuotedText = account.isSignatureBeforeQuotedText
             accountSignatureBeforeLocation.setChecked(isSignatureBeforeQuotedText)
@@ -81,8 +93,47 @@ class AccountSetupComposition : BaseActivity() {
             accountSignatureLayout.isVisible = false
         }
 
+        accountSignature.doAfterTextChanged { updateSignaturePreview() }
+
         setTextChangedListeners()
         validateFields()
+    }
+
+    private fun updateSignaturePreview() {
+        val signatureText = accountSignature.text.toString()
+        if (signatureText.isBlank()) {
+            accountSignaturePreview.loadUrl("about:blank")
+            return
+        }
+
+        val htmlContent = if (accountSignatureHtml.isChecked) {
+            """
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>body { font-family: sans-serif; padding: 8px; margin: 0; color: #333; }</style>
+            </head>
+            <body>$signatureText</body>
+            </html>
+            """
+        } else {
+            val escapedText = signatureText
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>")
+            """
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>body { font-family: sans-serif; padding: 8px; margin: 0; color: #333; }</style>
+            </head>
+            <body>$escapedText</body>
+            </html>
+            """
+        }
+
+        accountSignaturePreview.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
     }
 
     private fun setTextChangedListeners() {
@@ -131,6 +182,7 @@ class AccountSetupComposition : BaseActivity() {
         account.signatureUse = accountSignatureUse.isChecked
         if (accountSignatureUse.isChecked) {
             account.signature = accountSignature.text.toString()
+            account.signatureHtml = accountSignatureHtml.isChecked
             account.isSignatureBeforeQuotedText = accountSignatureBeforeLocation.isChecked
         }
 

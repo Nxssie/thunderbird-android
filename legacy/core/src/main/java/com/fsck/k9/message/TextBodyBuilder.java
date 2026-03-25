@@ -20,6 +20,7 @@ class TextBodyBuilder {
     private boolean mSignatureBeforeQuotedText = false;
     private boolean mInsertSeparator = false;
     private boolean mAppendSignature = true;
+    private boolean mSignatureHtml = false;
 
     private String mMessageContent;
     private String mSignature;
@@ -182,7 +183,12 @@ class TextBodyBuilder {
     private String getSignature() {
         String signature = "";
         if (!isEmpty(mSignature)) {
-            signature = "\r\n" + mSignature;
+            // If signature contains HTML but we're building plain text, convert HTML to text
+            if (HtmlConverter.containsHtml(mSignature)) {
+                signature = "\r\n" + HtmlConverter.htmlToText(mSignature);
+            } else {
+                signature = "\r\n" + mSignature;
+            }
         }
 
         return signature;
@@ -191,9 +197,24 @@ class TextBodyBuilder {
     private String getSignatureHtml() {
         String signature = "";
         if (!isEmpty(mSignature)) {
-            signature = HtmlConverter.textToHtmlFragment(mSignature);
+            // If signature is explicitly marked as HTML, use it directly
+            // Also auto-detect HTML for backward compatibility with existing signatures
+            if (mSignatureHtml || HtmlConverter.containsHtml(mSignature)) {
+                signature = wrapSignatureHtml(mSignature);
+            } else {
+                // Plain text signature - convert to HTML as before
+                signature = HtmlConverter.textToHtmlFragment(mSignature);
+            }
         }
         return signature;
+    }
+
+    /**
+     * Wraps an HTML signature in a div with the k9mail-signature class.
+     * This maintains consistency with plain text signatures.
+     */
+    private String wrapSignatureHtml(String htmlSignature) {
+        return "<div class='k9mail-signature'>" + htmlSignature + "</div>";
     }
 
     private String getQuotedText() {
@@ -214,6 +235,10 @@ class TextBodyBuilder {
 
     public void setSignature(String signature) {
         mSignature = signature;
+    }
+
+    public void setSignatureHtml(boolean signatureHtml) {
+        mSignatureHtml = signatureHtml;
     }
 
     public void setIncludeQuotedText(boolean includeQuotedText) {

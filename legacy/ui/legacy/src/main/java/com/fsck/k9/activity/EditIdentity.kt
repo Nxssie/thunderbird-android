@@ -71,6 +71,7 @@ class EditIdentity : BaseActivity() {
         signature = findViewById(R.id.signature)
         signatureLayout = findViewById(R.id.signature_layout)
         signaturePreview = findViewById(R.id.signature_preview)
+        signaturePreview.settings.javaScriptEnabled = false
 
         description.setText(identity.description)
         name.setText(identity.name)

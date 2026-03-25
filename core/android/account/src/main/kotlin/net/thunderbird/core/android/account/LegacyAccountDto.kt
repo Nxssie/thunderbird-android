@@ -433,6 +433,15 @@ open class LegacyAccountDto(
             identities[0] = newIdentity
         }
 
+    @get:Synchronized
+    @set:Synchronized
+    var signatureHtml: Boolean
+        get() = identities[0].signatureHtml
+        set(signatureHtml) {
+            val newIdentity = identities[0].withSignatureHtml(signatureHtml)
+            identities[0] = newIdentity
+        }
+
     @get:JvmName("shouldMigrateToOAuth")
     @get:Synchronized
     @set:Synchronized
